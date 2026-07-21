@@ -59,6 +59,21 @@ python -m app.api                  # open http://127.0.0.1:8000
 The advisor is optional — the dashboard and file import work with no API key. Add
 `LLM_API_KEY` to `.env` whenever you want to turn the advisor on.
 
+### Try it with fake data first
+
+Not ready to connect a real bank? Seed ~14 months of realistic activity across four
+accounts (checking, savings, credit card, loan) so you can explore everything right away:
+
+```bash
+make seed      # fills the local DB with fake transactions
+make run       # then open the dashboard
+make reset-data   # wipe it whenever you want
+```
+
+The fake data includes a few patterns worth finding — lifestyle creep in dining, a
+quietly recurring "forgotten" subscription, a holiday spike, and a summer trip — good
+material for testing the advisor.
+
 You can use the dashboard and import files **without any API key**. The advisor
 turns on the moment you add `LLM_API_KEY`.
 

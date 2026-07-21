@@ -5,7 +5,7 @@ VENV := .venv
 PY   := $(VENV)/bin/python
 PIP  := $(VENV)/bin/pip
 
-.PHONY: help setup run dev reset-data clean
+.PHONY: help setup run dev seed reset-data clean
 
 help: ## Show this help
 	@echo "Personal Finance Hub"
@@ -27,6 +27,9 @@ run: ## Start the app at http://127.0.0.1:8888
 
 dev: ## Start with auto-reload (for development)
 	$(PY) -m uvicorn app.api:app --host 127.0.0.1 --port 8888 --reload
+
+seed: ## Fill the DB with ~14 months of realistic fake data to explore
+	$(PY) scripts/seed_fake_data.py --reset --months 14
 
 reset-data: ## Delete your local database and start fresh
 	rm -f data/finance.db
