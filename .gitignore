@@ -1,0 +1,17 @@
+# Your financial data never leaves this machine — and never enters git.
+data/
+*.db
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Personal editor/agent settings
+.claude/settings.local.json
+.DS_Store

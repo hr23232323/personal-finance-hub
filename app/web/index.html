@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Personal Finance Hub</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='9' y='9' width='14' height='14' transform='rotate(45 16 16)' fill='%231E5C40'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="masthead">
+    <div class="brand">
+      <span class="mark" aria-hidden="true"></span>
+      <div>
+        <h1 class="wordmark">Personal Finance Hub</h1>
+        <p class="dateline">Local-first — your data never leaves this machine</p>
+      </div>
+    </div>
+    <div id="status" class="status"></div>
+  </header>
+
+  <nav class="tabs" aria-label="Sections">
+    <button class="tab active" data-tab="dashboard">Statement</button>
+    <button class="tab" data-tab="transactions">Ledger</button>
+    <button class="tab" data-tab="ask">Advisor</button>
+    <button class="tab" data-tab="connect">Import &amp; sync</button>
+  </nav>
+
+  <main>
+    <div class="periodbar" id="periodbar">
+      <label for="range">Period</label>
+      <select id="range">
+        <option value="30">Last 30 days</option>
+        <option value="90" selected>Last 90 days</option>
+        <option value="365">Last 12 months</option>
+        <option value="0">All time</option>
+      </select>
+    </div>
+
+    <!-- STATEMENT -->
+    <section id="tab-dashboard" class="panel">
+      <div id="summary" class="summary"></div>
+
+      <div class="grid2">
+        <section class="block">
+          <p class="eyebrow">Where it went</p>
+          <h3>Spending by category</h3>
+          <div id="byCategory" class="bars"></div>
+        </section>
+        <section class="block">
+          <p class="eyebrow">Month over month</p>
+          <h3>Money in vs. out</h3>
+          <div id="byMonth" class="bars"></div>
+        </section>
+      </div>
+
+      <section class="block">
+        <p class="eyebrow">Who got paid</p>
+        <h3>Top merchants</h3>
+        <div id="topMerchants" class="bars"></div>
+      </section>
+    </section>
+
+    <!-- LEDGER -->
+    <section id="tab-transactions" class="panel hidden">
+      <section class="block">
+        <div class="ledger-head">
+          <h3>Ledger</h3>
+          <input id="txSearch" placeholder="Search payee or memo" />
+        </div>
+        <table class="txtable">
+          <thead><tr><th>Date</th><th>Payee</th><th>Category</th><th>Account</th><th class="r">Amount</th></tr></thead>
+          <tbody id="txbody"></tbody>
+        </table>
+      </section>
+    </section>
+
+    <!-- ADVISOR -->
+    <section id="tab-ask" class="panel hidden">
+      <section class="block chat">
+        <p class="eyebrow">Your advisor</p>
+        <div id="chatlog" class="chatlog">
+          <div class="msg bot">I can see your transactions. Ask me things like <em>“Where did most of my money go last month?”</em>, <em>“Which subscriptions am I still paying for?”</em>, or <em>“What’s a purchase worth rethinking?”</em></div>
+        </div>
+        <div class="composer">
+          <input id="chatInput" placeholder="Ask about your money…" />
+          <button id="chatSend" class="primary">Ask</button>
+        </div>
+        <p class="fineprint" id="chatPrivacy"></p>
+      </section>
+    </section>
+
+    <!-- IMPORT & SYNC -->
+    <section id="tab-connect" class="panel hidden">
+      <div class="grid2">
+        <section class="block">
+          <p class="eyebrow"><span class="tick green"></span>Fully local</p>
+          <h3>Import a file</h3>
+          <p class="muted">Download a CSV, OFX, or QFX from your bank and drop it in. Nothing leaves this machine.</p>
+
+          <label class="field-label">Account</label>
+          <select id="importAccount"></select>
+
+          <details>
+            <summary>New account</summary>
+            <input id="newAcctName" placeholder="e.g. Chase Checking" />
+            <div class="composer">
+              <select id="newAcctType">
+                <option value="checking">Checking</option>
+                <option value="savings">Savings</option>
+                <option value="credit">Credit card</option>
+                <option value="loan">Loan</option>
+                <option value="investment">Investment</option>
+                <option value="other">Other</option>
+              </select>
+              <button id="createAcct">Create</button>
+            </div>
+          </details>
+
+          <label class="field-label">File</label>
+          <div class="composer">
+            <input type="file" id="importFile" accept=".csv,.ofx,.qfx,.txt" />
+            <button id="importBtn" class="primary">Import</button>
+          </div>
+          <div id="importResult" class="result"></div>
+        </section>
+
+        <section class="block">
+          <p class="eyebrow"><span class="tick gold"></span>Via aggregator</p>
+          <h3>SimpleFIN sync</h3>
+          <p class="muted">Auto-pull from your bank. Get a one-time setup token at
+            <a href="https://beta-bridge.simplefin.org" target="_blank" rel="noopener">beta-bridge.simplefin.org</a>.
+            Your data is retrieved on SimpleFIN’s servers, then copied here — convenient, not maximally private.</p>
+
+          <div id="sfStatus" class="sfstatus"></div>
+
+          <label class="field-label">Setup token</label>
+          <div class="composer">
+            <input id="sfToken" placeholder="Paste your SimpleFIN setup token" />
+            <button id="sfConnect">Connect</button>
+          </div>
+          <button id="sfSync" class="primary wide">Sync now</button>
+          <div id="sfResult" class="result"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>
