@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import config, db, queries
+from . import analysis, config, db, queries
 from .connectors import manual, simplefin
 
 WEB_DIR = Path(__file__).resolve().parent / "web"
@@ -56,6 +56,24 @@ def summary(start: str = None, end: str = None, account_id: int = None):
         "by_category": queries.spending_by_category(start, end, account_id),
         "by_month": queries.spending_by_month(start, end, account_id),
         "top_merchants": queries.top_merchants(start, end, account_id),
+    }
+
+
+# ── analysis: chart feeds + deterministic insights ───────────────────────────
+@app.get("/api/charts")
+def charts(start: str = None, end: str = None):
+    return {
+        "flow": analysis.money_flow(start, end),
+        "over_time": analysis.category_over_time(start, end),
+        "daily": analysis.daily_spending(start, end),
+    }
+
+
+@app.get("/api/insights")
+def insights():
+    return {
+        "recurring": analysis.recurring_charges(),
+        "anomalies": analysis.anomalies(),
     }
 
 
