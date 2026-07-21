@@ -96,6 +96,14 @@ credit columns). Amount convention: **positive = money in, negative = money out*
 3. The token is exchanged once for a local access URL stored in your DB; you won't
    need the token again.
 
+### Explore insights
+The **Statement** tab visualizes a period — category donut, an income→categories
+**Sankey**, and a daily **spending calendar**. The **Insights** tab surfaces things
+worth knowing without you asking: a **spending-over-time** trend, every **recurring
+charge / subscription** (with a "still active?" flag to catch forgotten ones), and
+**unusual spikes** where a category ran well above its own norm. Charts are powered
+by a vendored copy of ECharts — no CDN, fully offline.
+
 ### Ask the advisor
 Go to **Ask the advisor** and ask things like *"Where did most of my money go last
 month?"*, *"Any recurring subscriptions I might have forgotten?"*, *"What's a
@@ -131,9 +139,11 @@ app/
     manual.py          CSV + OFX/QFX parsing  (fully local)
     simplefin.py       token exchange + read-only sync
   queries.py           read-only queries (also the LLM's tools)
+  analysis.py          detectors: recurring, anomalies, chart feeds
   llm.py               provider-agnostic tool-calling advisor loop
   api.py               FastAPI: dashboard + JSON API (binds 127.0.0.1)
   web/                 vanilla-JS dashboard (no CDN, fully offline)
+  web/vendor/          ECharts, vendored locally for offline charts
 ```
 
 Single process, single SQLite file, no build step for the frontend.

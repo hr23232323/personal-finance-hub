@@ -190,6 +190,30 @@ details > input, details > .composer { margin-top: 8px; }
 .result { font-family: var(--mono); font-size: 12.5px; margin-top: 12px; min-height: 16px; }
 .result.ok { color: var(--green); } .result.err { color: var(--oxblood); }
 
+/* ── charts (ECharts containers) ───────────────────────────────────────────*/
+.chartbox { width: 100%; height: 300px; }
+.chartbox.tall { height: 360px; }
+#chartFlow { height: 340px; }
+.heatmap-wrap { overflow-x: auto; padding-bottom: 4px; }
+#chartHeatmap { height: 172px; min-width: 560px; }
+
+/* ── insights: recurring + anomalies ───────────────────────────────────────*/
+.rec-total { font-family: var(--mono); color: var(--oxblood); font-size: 13px; font-variant-numeric: tabular-nums; }
+.reclist { display: flex; flex-direction: column; }
+.rec { display: grid; grid-template-columns: 1fr auto; column-gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule-soft); }
+.rec:last-child { border-bottom: none; }
+.rec.inactive { opacity: 0.5; }
+.rec-main { display: flex; align-items: center; gap: 8px; }
+.rec-name { font-size: 13.5px; }
+.rec-flag { font-family: var(--mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft); border: 1px solid var(--rule); padding: 1px 6px; }
+.rec-meta { grid-column: 1; font-size: 11px; color: var(--ink-soft); font-family: var(--mono); margin-top: 2px; }
+.rec-amt { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-family: var(--mono); font-variant-numeric: tabular-nums; font-size: 14px; text-align: right; }
+.rec-amt span { color: var(--ink-soft); font-size: 11px; }
+.anomlist { display: flex; flex-direction: column; gap: 10px; }
+.anom { border: 1px solid var(--rule); border-left: 3px solid var(--oxblood); background: var(--surface); padding: 11px 14px; }
+.anom-head { font-family: var(--serif); font-size: 15px; }
+.anom-body { font-size: 12.5px; color: var(--ink-soft); font-family: var(--mono); font-variant-numeric: tabular-nums; margin-top: 3px; }
+
 /* ── quality floor ─────────────────────────────────────────────────────────*/
 :focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
 @media (prefers-reduced-motion: no-preference) {

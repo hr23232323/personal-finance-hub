@@ -21,6 +21,7 @@
 
   <nav class="tabs" aria-label="Sections">
     <button class="tab active" data-tab="dashboard">Statement</button>
+    <button class="tab" data-tab="insights">Insights</button>
     <button class="tab" data-tab="transactions">Ledger</button>
     <button class="tab" data-tab="ask">Advisor</button>
     <button class="tab" data-tab="connect">Import &amp; sync</button>
@@ -45,20 +46,52 @@
         <section class="block">
           <p class="eyebrow">Where it went</p>
           <h3>Spending by category</h3>
-          <div id="byCategory" class="bars"></div>
+          <div id="chartCategory" class="chartbox"></div>
         </section>
         <section class="block">
-          <p class="eyebrow">Month over month</p>
-          <h3>Money in vs. out</h3>
-          <div id="byMonth" class="bars"></div>
+          <p class="eyebrow">Follow the money</p>
+          <h3>Income, and where it flowed</h3>
+          <div id="chartFlow" class="chartbox"></div>
         </section>
       </div>
+
+      <section class="block">
+        <p class="eyebrow">Daily rhythm</p>
+        <h3>Spending calendar</h3>
+        <div class="heatmap-wrap"><div id="chartHeatmap"></div></div>
+      </section>
 
       <section class="block">
         <p class="eyebrow">Who got paid</p>
         <h3>Top merchants</h3>
         <div id="topMerchants" class="bars"></div>
       </section>
+    </section>
+
+    <!-- INSIGHTS -->
+    <section id="tab-insights" class="panel hidden">
+      <section class="block">
+        <p class="eyebrow">Trends</p>
+        <h3>Spending by category, over time</h3>
+        <div id="chartTrend" class="chartbox tall"></div>
+      </section>
+
+      <div class="grid2">
+        <section class="block">
+          <div class="ledger-head">
+            <h3>Recurring &amp; subscriptions</h3>
+            <span class="rec-total" id="recurringTotal"></span>
+          </div>
+          <p class="muted">Charges on a regular cadence — watch for ones you forgot you're paying.</p>
+          <div id="recurring" class="reclist"></div>
+        </section>
+        <section class="block">
+          <p class="eyebrow">Heads up</p>
+          <h3>Unusual spikes</h3>
+          <p class="muted">Months a category ran well above its own norm.</p>
+          <div id="anomalies" class="anomlist"></div>
+        </section>
+      </div>
     </section>
 
     <!-- LEDGER -->
@@ -146,6 +179,7 @@
     </section>
   </main>
 
+  <script src="/vendor/echarts.min.js"></script>
   <script src="/app.js"></script>
 </body>
 </html>

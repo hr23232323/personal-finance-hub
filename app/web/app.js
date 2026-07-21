@@ -7,6 +7,126 @@ const api = async (path, opts) => {
   return r.json();
 };
 
+// ── charts (ECharts, themed to the Statement look) ──────────────────────────
+const CHART = {
+  ink: "#1C1E1A", inkSoft: "#5C6056", green: "#1E5C40", oxblood: "#9E3B2A",
+  rule: "#D4D5C9", paper: "#ECEDE6", surface: "#FBFAF5",
+  sans: 'system-ui, -apple-system, sans-serif',
+  mono: 'ui-monospace, "SF Mono", Menlo, monospace',
+  palette: ["#1E5C40", "#9E3B2A", "#A9781F", "#3E6B8B", "#6B4E7A", "#7A6A4F", "#4C7A5B", "#9a9c90"],
+};
+const charts = {};
+function chart(id) {
+  if (!charts[id]) charts[id] = echarts.init(document.getElementById(id), null, { renderer: "svg" });
+  return charts[id];
+}
+window.addEventListener("resize", () => Object.values(charts).forEach((c) => c.resize()));
+
+function renderDonut(cats) {
+  chart("chartCategory").setOption({
+    color: CHART.palette,
+    tooltip: { trigger: "item", formatter: (p) => `${p.name}<br>${money(-p.value)} · ${p.percent}%` },
+    legend: { type: "scroll", bottom: 0, textStyle: { color: CHART.inkSoft, fontFamily: CHART.sans } },
+    series: [{
+      type: "pie", radius: ["52%", "78%"], center: ["50%", "43%"],
+      data: cats.map((c) => ({ name: c.category, value: c.spent })),
+      label: { show: false }, labelLine: { show: false },
+      itemStyle: { borderColor: CHART.surface, borderWidth: 2 },
+    }],
+  }, true);
+}
+
+function renderSankey(flow) {
+  chart("chartFlow").setOption({
+    tooltip: {
+      trigger: "item",
+      formatter: (p) => p.dataType === "edge"
+        ? `${p.data.source} → ${p.data.target}<br>${money(p.data.value)}`
+        : p.name,
+    },
+    series: [{
+      type: "sankey", data: flow.nodes, links: flow.links,
+      emphasis: { focus: "adjacency" }, nodeGap: 9, nodeWidth: 11,
+      itemStyle: { color: CHART.green, borderColor: CHART.surface },
+      lineStyle: { color: "gradient", opacity: 0.38, curveness: 0.5 },
+      label: { color: CHART.ink, fontFamily: CHART.sans, fontSize: 11 },
+    }],
+  }, true);
+}
+
+function renderHeatmap(daily) {
+  const el = document.getElementById("chartHeatmap");
+  if (!daily.length) { if (charts.chartHeatmap) charts.chartHeatmap.clear(); return; }
+  const first = daily[0][0], last = daily[daily.length - 1][0];
+  const weeks = Math.ceil((new Date(last) - new Date(first)) / (7 * 864e5)) + 2;
+  el.style.minWidth = Math.max(560, weeks * 17 + 60) + "px";
+  const c = chart("chartHeatmap");
+  c.resize();
+  c.setOption({
+    tooltip: { formatter: (p) => `${p.data[0]} · ${money(-p.data[1])}` },
+    visualMap: {
+      min: 0, max: Math.max(...daily.map((d) => d[1])), orient: "horizontal",
+      left: "center", bottom: 0, inRange: { color: ["#E4E6DC", "#8FB39C", "#1E5C40"] },
+      textStyle: { color: CHART.inkSoft, fontFamily: CHART.mono, fontSize: 10 },
+    },
+    calendar: {
+      range: [first, last], cellSize: ["auto", 14], top: 12, bottom: 46, left: 26, right: 14,
+      itemStyle: { color: CHART.surface, borderColor: CHART.paper, borderWidth: 2 },
+      splitLine: { lineStyle: { color: CHART.rule } },
+      dayLabel: { color: CHART.inkSoft, fontFamily: CHART.sans, fontSize: 9, firstDay: 1 },
+      monthLabel: { color: CHART.inkSoft, fontFamily: CHART.sans, fontSize: 10 },
+      yearLabel: { show: false },
+    },
+    series: [{ type: "heatmap", coordinateSystem: "calendar", data: daily }],
+  }, true);
+}
+
+function renderTrend(ot) {
+  chart("chartTrend").setOption({
+    color: CHART.palette,
+    tooltip: { trigger: "axis" },
+    legend: { type: "scroll", top: 0, textStyle: { color: CHART.inkSoft, fontFamily: CHART.sans } },
+    grid: { left: 56, right: 16, top: 38, bottom: 26 },
+    xAxis: {
+      type: "category", data: ot.months, boundaryGap: false,
+      axisLabel: { color: CHART.inkSoft, fontFamily: CHART.mono, fontSize: 10 },
+      axisLine: { lineStyle: { color: CHART.rule } },
+    },
+    yAxis: {
+      type: "value", splitLine: { lineStyle: { color: CHART.rule } },
+      axisLabel: { color: CHART.inkSoft, fontFamily: CHART.mono, fontSize: 10, formatter: (v) => "$" + v },
+    },
+    series: ot.series.map((s) => ({
+      name: s.name, type: "line", stack: "total", smooth: true, symbol: "none",
+      areaStyle: { opacity: 0.5 }, data: s.data,
+    })),
+  }, true);
+}
+
+let insightsLoaded = false;
+async function loadInsights() {
+  const d = await api("/api/insights");
+  const activeMo = d.recurring.filter((r) => r.active).reduce((s, r) => s + r.monthly_cost, 0);
+  $("#recurringTotal").textContent = money(-activeMo) + "/mo active";
+  $("#recurring").innerHTML = d.recurring.length
+    ? d.recurring.map((r) => `
+      <div class="rec ${r.active ? "" : "inactive"}">
+        <div class="rec-main"><span class="rec-name">${r.payee}</span>
+          <span class="cat">${r.category}</span>${r.active ? "" : '<span class="rec-flag">inactive</span>'}</div>
+        <div class="rec-meta">${r.cadence} · ${r.occurrences}× · last ${r.last_charge}</div>
+        <div class="rec-amt">${money(-r.monthly_cost)}<span>/mo</span></div>
+      </div>`).join("")
+    : '<div class="empty">No recurring charges detected yet.</div>';
+  $("#anomalies").innerHTML = d.anomalies.length
+    ? d.anomalies.map((a) => `
+      <div class="anom">
+        <div class="anom-head">${a.category} spiked in ${a.month}</div>
+        <div class="anom-body">${money(-a.amount)} vs. typical ${money(-a.typical)} — <b>${a.factor}×</b></div>
+      </div>`).join("")
+    : '<div class="empty">No unusual spikes found.</div>';
+  renderTrend((await api("/api/charts")).over_time);
+}
+
 // ── date range ───────────────────────────────────────────────────────────────
 function range() {
   const days = parseInt($("#range").value, 10);
@@ -30,9 +150,15 @@ document.querySelectorAll(".tab").forEach((t) =>
     t.classList.add("active");
     document.querySelectorAll(".panel").forEach((p) => p.classList.add("hidden"));
     $("#tab-" + t.dataset.tab).classList.remove("hidden");
+    const tab = t.dataset.tab;
     // Period only affects the Statement and Ledger views.
-    const usesPeriod = t.dataset.tab === "dashboard" || t.dataset.tab === "transactions";
-    $("#periodbar").style.display = usesPeriod ? "flex" : "none";
+    $("#periodbar").style.display = (tab === "dashboard" || tab === "transactions") ? "flex" : "none";
+    if (tab === "insights" && !insightsLoaded) {
+      insightsLoaded = true;
+      loadInsights().catch(console.error);
+    }
+    // ECharts can't size a hidden container; resize once this tab is visible.
+    setTimeout(() => Object.values(charts).forEach((c) => c.resize()), 0);
   })
 );
 $("#range").addEventListener("change", refresh);
@@ -68,7 +194,8 @@ async function loadDashboard() {
   if (!s.count) {
     $("#summary").innerHTML =
       `<div class="empty-hero">No transactions yet. Open <b>Import &amp; sync</b> to add your first account.</div>`;
-    $("#byCategory").innerHTML = $("#byMonth").innerHTML = $("#topMerchants").innerHTML = "";
+    $("#topMerchants").innerHTML = "";
+    ["chartCategory", "chartFlow", "chartHeatmap"].forEach((id) => charts[id] && charts[id].clear());
     return;
   }
 
@@ -86,23 +213,10 @@ async function loadDashboard() {
       <div class="tally"><span class="t-label">Transactions</span><span class="t-val">${s.count}</span></div>
     </div>`;
 
-  const cats = d.by_category;
-  const maxCat = Math.max(1, ...cats.map((c) => c.spent));
-  $("#byCategory").innerHTML = cats.length
-    ? cats.map((c) => bar(c.category, c.spent, maxCat, "spend")).join("")
-    : '<div class="empty">No spending in this period.</div>';
-
-  const months = d.by_month;
-  const maxM = Math.max(1, ...months.map((m) => Math.max(m.income, m.spending)));
-  $("#byMonth").innerHTML = months.length
-    ? months.map((m) =>
-        `<div class="bar-row month-row"><span class="name">${m.month}</span>
-          <div class="month-pair">
-            <div class="bar-track"><div class="bar-fill income" style="width:${Math.round((m.income / maxM) * 100)}%"></div></div>
-            <div class="bar-track"><div class="bar-fill spend" style="width:${Math.round((m.spending / maxM) * 100)}%"></div></div>
-          </div></div>`
-      ).join("")
-    : '<div class="empty">No data yet.</div>';
+  renderDonut(d.by_category);
+  const c = await api("/api/charts?" + qs({ start, end }));
+  renderSankey(c.flow);
+  renderHeatmap(c.daily);
 
   const mer = d.top_merchants;
   const maxMer = Math.max(1, ...mer.map((m) => m.spent));
