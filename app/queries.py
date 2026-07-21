@@ -71,8 +71,8 @@ def get_summary(start=None, end=None, account_id=None):
     with db.get_conn() as conn:
         row = conn.execute(f"""
             SELECT
-              COALESCE(SUM(CASE WHEN amount > 0 THEN amount END), 0) AS income,
-              COALESCE(SUM(CASE WHEN amount < 0 THEN amount END), 0) AS spending,
+              COALESCE(SUM(CASE WHEN amount > 0 AND category != 'Transfers' THEN amount END), 0) AS income,
+              COALESCE(SUM(CASE WHEN amount < 0 AND category != 'Transfers' THEN amount END), 0) AS spending,
               COALESCE(SUM(amount), 0) AS net,
               COUNT(*) AS count
             FROM transactions t {where}
@@ -82,7 +82,7 @@ def get_summary(start=None, end=None, account_id=None):
 
 def spending_by_category(start=None, end=None, account_id=None):
     """Total spending (money out) grouped by category, largest first."""
-    where, params = _where(start, end, account_id, extra="t.amount < 0")
+    where, params = _where(start, end, account_id, extra="t.amount < 0 AND t.category != 'Transfers'")
     with db.get_conn() as conn:
         rows = conn.execute(f"""
             SELECT category, ROUND(SUM(-amount), 2) AS spent, COUNT(*) AS count
@@ -98,8 +98,8 @@ def spending_by_month(start=None, end=None, account_id=None):
     with db.get_conn() as conn:
         rows = conn.execute(f"""
             SELECT substr(date, 1, 7) AS month,
-                   ROUND(SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END), 2) AS income,
-                   ROUND(SUM(CASE WHEN amount < 0 THEN -amount ELSE 0 END), 2) AS spending
+                   ROUND(SUM(CASE WHEN amount > 0 AND category != 'Transfers' THEN amount ELSE 0 END), 2) AS income,
+                   ROUND(SUM(CASE WHEN amount < 0 AND category != 'Transfers' THEN -amount ELSE 0 END), 2) AS spending
             FROM transactions t {where}
             GROUP BY month ORDER BY month
         """, params).fetchall()
@@ -108,7 +108,8 @@ def spending_by_month(start=None, end=None, account_id=None):
 
 def top_merchants(start=None, end=None, account_id=None, limit=10):
     """Merchants/payees you spent the most at."""
-    where, params = _where(start, end, account_id, extra="t.amount < 0 AND t.payee != ''")
+    where, params = _where(start, end, account_id,
+                           extra="t.amount < 0 AND t.payee != '' AND t.category != 'Transfers'")
     with db.get_conn() as conn:
         rows = conn.execute(f"""
             SELECT payee, ROUND(SUM(-amount), 2) AS spent, COUNT(*) AS visits
