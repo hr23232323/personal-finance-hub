@@ -21,7 +21,7 @@
 
   <nav class="tabs" aria-label="Sections">
     <button class="tab active" data-tab="dashboard">Statement</button>
-    <button class="tab" data-tab="insights">Insights</button>
+    <button class="tab" data-tab="insights">Discoveries</button>
     <button class="tab" data-tab="transactions">Ledger</button>
     <button class="tab" data-tab="ask">Advisor</button>
     <button class="tab" data-tab="connect">Import &amp; sync</button>
@@ -68,30 +68,29 @@
       </section>
     </section>
 
-    <!-- INSIGHTS -->
+    <!-- DISCOVERIES -->
     <section id="tab-insights" class="panel hidden">
+      <section class="block">
+        <p class="eyebrow">What's worth noticing</p>
+        <h3>Discoveries</h3>
+        <p class="muted">Patterns and changes we found in your history — click any to see the transactions behind it.</p>
+        <div id="discoveries" class="discfeed"></div>
+      </section>
+
       <section class="block">
         <p class="eyebrow">Trends</p>
         <h3>Spending by category, over time</h3>
         <div id="chartTrend" class="chartbox tall"></div>
       </section>
 
-      <div class="grid2">
-        <section class="block">
-          <div class="ledger-head">
-            <h3>Recurring &amp; subscriptions</h3>
-            <span class="rec-total" id="recurringTotal"></span>
-          </div>
-          <p class="muted">Charges on a regular cadence — watch for ones you forgot you're paying.</p>
-          <div id="recurring" class="reclist"></div>
-        </section>
-        <section class="block">
-          <p class="eyebrow">Heads up</p>
-          <h3>Unusual spikes</h3>
-          <p class="muted">Months a category ran well above its own norm.</p>
-          <div id="anomalies" class="anomlist"></div>
-        </section>
-      </div>
+      <section class="block">
+        <div class="ledger-head">
+          <h3>Recurring &amp; subscriptions</h3>
+          <span class="rec-total" id="recurringTotal"></span>
+        </div>
+        <p class="muted">Charges on a regular cadence — watch for ones you forgot you're paying.</p>
+        <div id="recurring" class="reclist"></div>
+      </section>
     </section>
 
     <!-- LEDGER -->

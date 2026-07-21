@@ -103,13 +103,41 @@ function renderTrend(ot) {
   }, true);
 }
 
+function renderDiscoveries(list) {
+  if (!list.length) {
+    $("#discoveries").innerHTML =
+      '<div class="empty">Not enough history yet — import more transactions to surface patterns.</div>';
+    return;
+  }
+  $("#discoveries").innerHTML = list.map((d) => {
+    const ev = d.evidence.length ? `
+      <details class="disc-ev">
+        <summary>See ${d.evidence_count} transaction${d.evidence_count === 1 ? "" : "s"}</summary>
+        <table class="txtable"><tbody>
+          ${d.evidence.map((t) => `<tr>
+            <td>${t.date}</td><td>${t.payee || "—"}</td>
+            <td><span class="cat">${t.category}</span></td>
+            <td class="r ${t.amount >= 0 ? "amt-pos" : "amt-neg"}">${money(t.amount)}</td></tr>`).join("")}
+        </tbody></table>
+      </details>` : "";
+    return `<article class="disc disc-${d.tone}">
+      <h4>${d.title}</h4>
+      <p class="disc-sum">${d.summary}</p>
+      ${ev}
+    </article>`;
+  }).join("");
+}
+
 let insightsLoaded = false;
 async function loadInsights() {
-  const d = await api("/api/insights");
-  const activeMo = d.recurring.filter((r) => r.active).reduce((s, r) => s + r.monthly_cost, 0);
+  const [disc, ins, ch] = await Promise.all([
+    api("/api/discoveries"), api("/api/insights"), api("/api/charts"),
+  ]);
+  renderDiscoveries(disc);
+  const activeMo = ins.recurring.filter((r) => r.active).reduce((s, r) => s + r.monthly_cost, 0);
   $("#recurringTotal").textContent = money(-activeMo) + "/mo active";
-  $("#recurring").innerHTML = d.recurring.length
-    ? d.recurring.map((r) => `
+  $("#recurring").innerHTML = ins.recurring.length
+    ? ins.recurring.map((r) => `
       <div class="rec ${r.active ? "" : "inactive"}">
         <div class="rec-main"><span class="rec-name">${r.payee}</span>
           <span class="cat">${r.category}</span>${r.active ? "" : '<span class="rec-flag">inactive</span>'}</div>
@@ -117,14 +145,7 @@ async function loadInsights() {
         <div class="rec-amt">${money(-r.monthly_cost)}<span>/mo</span></div>
       </div>`).join("")
     : '<div class="empty">No recurring charges detected yet.</div>';
-  $("#anomalies").innerHTML = d.anomalies.length
-    ? d.anomalies.map((a) => `
-      <div class="anom">
-        <div class="anom-head">${a.category} spiked in ${a.month}</div>
-        <div class="anom-body">${money(-a.amount)} vs. typical ${money(-a.typical)} — <b>${a.factor}×</b></div>
-      </div>`).join("")
-    : '<div class="empty">No unusual spikes found.</div>';
-  renderTrend((await api("/api/charts")).over_time);
+  renderTrend(ch.over_time);
 }
 
 // ── date range ───────────────────────────────────────────────────────────────

@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import analysis, config, db, queries
+from . import analysis, config, db, discover, queries
 from .connectors import manual, simplefin
 
 WEB_DIR = Path(__file__).resolve().parent / "web"
@@ -75,6 +75,11 @@ def insights():
         "recurring": analysis.recurring_charges(),
         "anomalies": analysis.anomalies(),
     }
+
+
+@app.get("/api/discoveries")
+def discoveries():
+    return discover.discoveries()
 
 
 # ── manual import (fully local) ──────────────────────────────────────────────

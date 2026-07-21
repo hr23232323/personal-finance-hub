@@ -197,6 +197,18 @@ details > input, details > .composer { margin-top: 8px; }
 .heatmap-wrap { overflow-x: auto; padding-bottom: 4px; }
 #chartHeatmap { height: 172px; min-width: 560px; }
 
+/* ── discoveries feed ──────────────────────────────────────────────────────*/
+.discfeed { display: flex; flex-direction: column; gap: 14px; }
+.disc { border: 1px solid var(--rule); border-left: 3px solid var(--ink-soft); background: var(--surface); padding: 14px 18px; }
+.disc-positive { border-left-color: var(--green); }
+.disc-watch { border-left-color: var(--oxblood); }
+.disc h4 { font-family: var(--serif); font-size: 16.5px; font-weight: 600; margin: 0; }
+.disc-sum { margin: 6px 0 0; color: var(--ink); font-size: 14px; max-width: 66ch; }
+.disc-ev { margin-top: 11px; }
+.disc-ev summary { cursor: pointer; color: var(--green); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 600; }
+.disc-ev .txtable { margin-top: 10px; }
+.disc-ev .txtable td { padding: 7px 8px; font-size: 12.5px; }
+
 /* ── insights: recurring + anomalies ───────────────────────────────────────*/
 .rec-total { font-family: var(--mono); color: var(--oxblood); font-size: 13px; font-variant-numeric: tabular-nums; }
 .reclist { display: flex; flex-direction: column; }

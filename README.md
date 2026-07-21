@@ -96,13 +96,15 @@ credit columns). Amount convention: **positive = money in, negative = money out*
 3. The token is exchanged once for a local access URL stored in your DB; you won't
    need the token again.
 
-### Explore insights
+### Explore & discover
 The **Statement** tab visualizes a period — category donut, an income→categories
-**Sankey**, and a daily **spending calendar**. The **Insights** tab surfaces things
-worth knowing without you asking: a **spending-over-time** trend, every **recurring
-charge / subscription** (with a "still active?" flag to catch forgotten ones), and
-**unusual spikes** where a category ran well above its own norm. Charts are powered
-by a vendored copy of ECharts — no CDN, fully offline.
+**Sankey**, and a daily **spending calendar**. The **Discoveries** tab is the point
+of the app: a feed of patterns found in your history — *"Dining is up 71% versus your
+norm,"* recurring charges you forgot you're paying, unusual spikes, one-offs that
+distorted a period — each ranked by how unusual it is *for you*, and clickable to the
+exact transactions behind it. Every detector is plain, transparent math: **no LLM
+required**, nothing invented — the optional advisor only narrates what's computed.
+Charts use a vendored copy of ECharts (no CDN, fully offline).
 
 ### Ask the advisor
 Go to **Ask the advisor** and ask things like *"Where did most of my money go last
@@ -140,6 +142,7 @@ app/
     simplefin.py       token exchange + read-only sync
   queries.py           read-only queries (also the LLM's tools)
   analysis.py          detectors: recurring, anomalies, chart feeds
+  discover.py          Discoveries engine: ranked, evidence-linked insights
   llm.py               provider-agnostic tool-calling advisor loop
   api.py               FastAPI: dashboard + JSON API (binds 127.0.0.1)
   web/                 vanilla-JS dashboard (no CDN, fully offline)
