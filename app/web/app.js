@@ -20,7 +20,10 @@ function chart(id) {
   if (!charts[id]) charts[id] = echarts.init(document.getElementById(id), null, { renderer: "svg" });
   return charts[id];
 }
-window.addEventListener("resize", () => Object.values(charts).forEach((c) => c.resize()));
+window.addEventListener("resize", () => {
+  Object.values(charts).forEach((c) => c.resize());
+  miniCharts.forEach((c) => c.resize());
+});
 
 function renderDonut(cats) {
   chart("chartCategory").setOption({
@@ -103,13 +106,59 @@ function renderTrend(ot) {
   }, true);
 }
 
+const TONE = { watch: "#9E3B2A", positive: "#1E5C40", neutral: "#5C6056" };
+const TONE_FADE = { watch: "rgba(158,59,42,0.13)", positive: "rgba(30,92,64,0.13)", neutral: "rgba(92,96,86,0.11)" };
+const miniCharts = [];
+
+function renderMini(el, spec, tone) {
+  const c = echarts.init(el, null, { renderer: "svg" });
+  miniCharts.push(c);
+  const base = { animation: false, tooltip: { trigger: "item" } };
+  if (spec.kind === "trend") {
+    const color = TONE[spec.tone] || TONE.neutral;
+    c.setOption({ ...base, tooltip: { trigger: "axis", formatter: (p) => `${p[0].axisValue} · ${money(-p[0].data)}` },
+      grid: { left: 2, right: 2, top: 6, bottom: 2 },
+      xAxis: { type: "category", data: spec.months, show: false, boundaryGap: false },
+      yAxis: { type: "value", show: false, min: 0 },
+      series: [{ type: "line", data: spec.values, smooth: true, symbol: "none",
+        lineStyle: { color, width: 1.8 }, areaStyle: { color: TONE_FADE[spec.tone] || TONE_FADE.neutral } }] });
+  } else if (spec.kind === "months") {
+    c.setOption({ ...base, tooltip: { trigger: "axis", formatter: (p) => `${p[0].axisValue} · ${money(-p[0].data)}` },
+      grid: { left: 2, right: 2, top: 6, bottom: 2 },
+      xAxis: { type: "category", data: spec.months, show: false },
+      yAxis: { type: "value", show: false },
+      series: [{ type: "bar", barCategoryGap: "28%",
+        data: spec.values.map((v, i) => ({ value: v, itemStyle: { color: i === spec.highlight ? TONE.watch : "#c9cbbf" } })) }] });
+  } else if (spec.kind === "hbars") {
+    const items = spec.items.slice().reverse();
+    c.setOption({ ...base, tooltip: { trigger: "item", formatter: (p) => `${p.name} · ${money(-p.value)}` },
+      grid: { left: 74, right: 8, top: 2, bottom: 2 },
+      xAxis: { type: "value", show: false },
+      yAxis: { type: "category", data: items.map((i) => i.label),
+        axisLine: { show: false }, axisTick: { show: false },
+        axisLabel: { color: CHART.inkSoft, fontFamily: CHART.sans, fontSize: 9.5, width: 66, overflow: "truncate" } },
+      series: [{ type: "bar", barWidth: 8, data: items.map((i) => i.value), itemStyle: { color: TONE[tone] || TONE.neutral } }] });
+  } else if (spec.kind === "compare") {
+    c.setOption({ ...base, tooltip: { trigger: "item" },
+      grid: { left: 4, right: 4, top: 8, bottom: 18 },
+      xAxis: { type: "category", data: spec.items.map((i) => i.label),
+        axisLine: { lineStyle: { color: CHART.rule } }, axisTick: { show: false },
+        axisLabel: { color: CHART.inkSoft, fontFamily: CHART.sans, fontSize: 10 } },
+      yAxis: { type: "value", show: false },
+      series: [{ type: "bar", barWidth: 22,
+        data: spec.items.map((i, idx) => ({ value: i.value, itemStyle: { color: idx === 0 ? "#c9cbbf" : (TONE[tone] || TONE.neutral) } })) }] });
+  }
+}
+
 function renderDiscoveries(list) {
+  miniCharts.forEach((c) => c.dispose());
+  miniCharts.length = 0;
   if (!list.length) {
     $("#discoveries").innerHTML =
       '<div class="empty">Not enough history yet — import more transactions to surface patterns.</div>';
     return;
   }
-  $("#discoveries").innerHTML = list.map((d) => {
+  $("#discoveries").innerHTML = list.map((d, i) => {
     const ev = d.evidence.length ? `
       <details class="disc-ev">
         <summary>See ${d.evidence_count} transaction${d.evidence_count === 1 ? "" : "s"}</summary>
@@ -120,12 +169,17 @@ function renderDiscoveries(list) {
             <td class="r ${t.amount >= 0 ? "amt-pos" : "amt-neg"}">${money(t.amount)}</td></tr>`).join("")}
         </tbody></table>
       </details>` : "";
+    const viz = d.chart ? `<div class="disc-viz" id="mini-${i}"></div>` : "";
     return `<article class="disc disc-${d.tone}">
-      <h4>${d.title}</h4>
-      <p class="disc-sum">${d.summary}</p>
-      ${ev}
+      <div class="disc-body"><h4>${d.title}</h4>
+        <p class="disc-sum">${d.summary}</p>${ev}</div>
+      ${viz}
     </article>`;
   }).join("");
+  list.forEach((d, i) => {
+    const el = document.getElementById(`mini-${i}`);
+    if (el && d.chart) renderMini(el, d.chart, d.tone);
+  });
 }
 
 let insightsLoaded = false;

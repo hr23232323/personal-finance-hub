@@ -199,12 +199,15 @@ details > input, details > .composer { margin-top: 8px; }
 
 /* ── discoveries feed ──────────────────────────────────────────────────────*/
 .discfeed { display: flex; flex-direction: column; gap: 14px; }
-.disc { border: 1px solid var(--rule); border-left: 3px solid var(--ink-soft); background: var(--surface); padding: 14px 18px; }
+.disc { display: flex; gap: 22px; align-items: center; border: 1px solid var(--rule); border-left: 3px solid var(--ink-soft); background: var(--surface); padding: 15px 18px; }
+.disc-body { flex: 1; min-width: 0; }
+.disc-viz { width: 208px; height: 90px; flex: none; }
 .disc-positive { border-left-color: var(--green); }
 .disc-watch { border-left-color: var(--oxblood); }
 .disc h4 { font-family: var(--serif); font-size: 16.5px; font-weight: 600; margin: 0; }
-.disc-sum { margin: 6px 0 0; color: var(--ink); font-size: 14px; max-width: 66ch; }
+.disc-sum { margin: 6px 0 0; color: var(--ink); font-size: 14px; }
 .disc-ev { margin-top: 11px; }
+@media (max-width: 640px) { .disc { flex-direction: column; align-items: stretch; gap: 12px; } .disc-viz { width: 100%; height: 110px; } }
 .disc-ev summary { cursor: pointer; color: var(--green); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.09em; font-weight: 600; }
 .disc-ev .txtable { margin-top: 10px; }
 .disc-ev .txtable td { padding: 7px 8px; font-size: 12.5px; }
