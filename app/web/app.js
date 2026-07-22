@@ -184,8 +184,18 @@ function renderDiscoveries(list) {
 
 const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 
+const COACH_SKELETON = `<div class="coachcards">${[0, 1, 2].map(() => `
+  <article class="ci ci-skel">
+    <div class="ci-top"><span class="skel skel-kind"></span><span class="skel skel-metric"></span></div>
+    <span class="skel skel-h"></span><span class="skel skel-h short"></span>
+    <span class="skel skel-p"></span><span class="skel skel-p"></span><span class="skel skel-p short"></span>
+  </article>`).join("")}</div>
+  <p class="coach-note">Reading your numbers — this takes a few seconds.</p>`;
+
 async function loadCoach() {
   const el = $("#coach");
+  el.className = "coachwrap";
+  el.innerHTML = COACH_SKELETON;
   try {
     const c = await api("/api/coach");
     if (!c.available) {
@@ -196,7 +206,8 @@ async function loadCoach() {
     }
     if (!c.insights || !c.insights.length) {
       el.className = "coach note";
-      el.textContent = "Couldn't reach the model" + (c.error ? `: ${c.error}` : ".");
+      el.innerHTML = `Couldn't reach the model${c.error ? `: ${esc(c.error)}` : "."} `
+        + `<button class="linkbtn" onclick="loadCoach()">Try again</button>`;
       return;
     }
     el.className = "coachwrap";
@@ -213,29 +224,45 @@ async function loadCoach() {
          it connects the numbers, it never invents them.</p>`;
   } catch (e) {
     el.className = "coach note";
-    el.textContent = e.message;
+    el.innerHTML = `Couldn't load the coach's read: ${esc(e.message)}. `
+      + `<button class="linkbtn" onclick="loadCoach()">Try again</button>`;
   }
 }
 
 let insightsLoaded = false;
 async function loadInsights() {
-  const [disc, ins, ch] = await Promise.all([
-    api("/api/discoveries"), api("/api/insights"), api("/api/charts"),
-  ]);
-  renderDiscoveries(disc);
-  const activeMo = ins.recurring.filter((r) => r.active).reduce((s, r) => s + r.monthly_cost, 0);
-  $("#recurringTotal").textContent = money(-activeMo) + "/mo active";
-  $("#recurring").innerHTML = ins.recurring.length
-    ? ins.recurring.map((r) => `
-      <div class="rec ${r.active ? "" : "inactive"}">
-        <div class="rec-main"><span class="rec-name">${r.payee}</span>
-          <span class="cat">${r.category}</span>${r.active ? "" : '<span class="rec-flag">inactive</span>'}</div>
-        <div class="rec-meta">${r.cadence} · ${r.occurrences}× · last ${r.last_charge}</div>
-        <div class="rec-amt">${money(-r.monthly_cost)}<span>/mo</span></div>
-      </div>`).join("")
-    : '<div class="empty">No recurring charges detected yet.</div>';
-  renderTrend(ch.over_time);
-  loadCoach();  // slower LLM call — don't block the deterministic feed
+  // Each section loads independently: a failure in one must never leave another
+  // stuck on its loading state.
+  loadCoach();  // slow LLM call — start it first, don't await
+
+  try {
+    renderDiscoveries(await api("/api/discoveries"));
+  } catch (e) {
+    $("#discoveries").innerHTML = `<div class="empty">Couldn't load discoveries: ${esc(e.message)}</div>`;
+  }
+
+  try {
+    const ins = await api("/api/insights");
+    const activeMo = ins.recurring.filter((r) => r.active).reduce((s, r) => s + r.monthly_cost, 0);
+    $("#recurringTotal").textContent = money(-activeMo) + "/mo active";
+    $("#recurring").innerHTML = ins.recurring.length
+      ? ins.recurring.map((r) => `
+        <div class="rec ${r.active ? "" : "inactive"}">
+          <div class="rec-main"><span class="rec-name">${r.payee}</span>
+            <span class="cat">${r.category}</span>${r.active ? "" : '<span class="rec-flag">inactive</span>'}</div>
+          <div class="rec-meta">${r.cadence} · ${r.occurrences}× · last ${r.last_charge}</div>
+          <div class="rec-amt">${money(-r.monthly_cost)}<span>/mo</span></div>
+        </div>`).join("")
+      : '<div class="empty">No recurring charges detected yet.</div>';
+  } catch (e) {
+    $("#recurring").innerHTML = `<div class="empty">Couldn't load recurring charges: ${esc(e.message)}</div>`;
+  }
+
+  try {
+    renderTrend((await api("/api/charts")).over_time);
+  } catch (e) {
+    console.error("trend chart failed", e);
+  }
 }
 
 // ── date range ───────────────────────────────────────────────────────────────

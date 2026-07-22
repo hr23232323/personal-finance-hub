@@ -210,7 +210,23 @@ details > input, details > .composer { margin-top: 8px; }
 .ci-metric { font-family: var(--mono); font-size: 14px; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
 .ci h4 { font-family: var(--serif); font-size: 15.5px; font-weight: 600; margin: 0 0 5px; line-height: 1.32; }
 .ci p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); }
+
+/* skeleton while the coach is thinking */
+.ci-skel { border-top-color: var(--rule); }
+.skel { display: block; border-radius: 2px; background: linear-gradient(90deg, #e4e5dc 25%, #f0f1e9 50%, #e4e5dc 75%); background-size: 200% 100%; }
+@media (prefers-reduced-motion: no-preference) {
+  .skel { animation: shimmer 1.5s linear infinite; }
+  @keyframes shimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+}
+.skel-kind { width: 62px; height: 9px; }
+.skel-metric { width: 50px; height: 12px; }
+.skel-h { height: 13px; margin-bottom: 6px; }
+.skel-h.short { width: 58%; margin-bottom: 13px; }
+.skel-p { height: 9px; margin-bottom: 7px; }
+.skel-p.short { width: 68%; margin-bottom: 0; }
 .coach.note { font-family: var(--sans); font-size: 13px; color: var(--ink-soft); }
+.linkbtn { background: none; border: none; color: var(--green); font-size: 13px; font-weight: 600; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+.linkbtn:hover { color: var(--green-2); background: none; }
 .coach code { font-family: var(--mono); font-size: 12px; background: var(--paper); border: 1px solid var(--rule); padding: 1px 5px; }
 .coach .coach-note { font-family: var(--sans); font-size: 11px; color: var(--ink-soft); margin-top: 16px; line-height: 1.5; }
 
