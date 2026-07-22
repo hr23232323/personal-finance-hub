@@ -182,6 +182,33 @@ function renderDiscoveries(list) {
   });
 }
 
+const esc = (s) => String(s).replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+
+async function loadCoach() {
+  const el = $("#coach");
+  try {
+    const c = await api("/api/coach");
+    if (!c.available) {
+      el.className = "coach note";
+      el.innerHTML = "Add an <code>LLM_API_KEY</code> to your <code>.env</code> for a written read of "
+        + "these findings. Everything below works without it.";
+      return;
+    }
+    if (!c.read) {
+      el.className = "coach note";
+      el.textContent = "Couldn't reach the model" + (c.error ? `: ${c.error}` : ".");
+      return;
+    }
+    el.className = "coach";
+    el.innerHTML = c.read.split(/\n\s*\n/).map((p) => `<p>${esc(p.trim())}</p>`).join("")
+      + `<p class="coach-note">Written by ${esc(c.model)} from the computed findings below — it
+         narrates the numbers, it never invents them.</p>`;
+  } catch (e) {
+    el.className = "coach note";
+    el.textContent = e.message;
+  }
+}
+
 let insightsLoaded = false;
 async function loadInsights() {
   const [disc, ins, ch] = await Promise.all([
@@ -200,6 +227,7 @@ async function loadInsights() {
       </div>`).join("")
     : '<div class="empty">No recurring charges detected yet.</div>';
   renderTrend(ch.over_time);
+  loadCoach();  // slower LLM call — don't block the deterministic feed
 }
 
 // ── date range ───────────────────────────────────────────────────────────────

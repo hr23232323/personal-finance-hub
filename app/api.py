@@ -12,7 +12,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from . import analysis, config, db, discover, queries
+from . import analysis, coach, config, db, discover, queries
 from .connectors import manual, simplefin
 
 WEB_DIR = Path(__file__).resolve().parent / "web"
@@ -80,6 +80,12 @@ def insights():
 @app.get("/api/discoveries")
 def discoveries():
     return discover.discoveries()
+
+
+@app.get("/api/coach")
+def coach_read(refresh: bool = False):
+    """Tier 2: the LLM's written read of the deterministic findings (optional)."""
+    return coach.read(force=refresh)
 
 
 # ── manual import (fully local) ──────────────────────────────────────────────

@@ -197,6 +197,15 @@ details > input, details > .composer { margin-top: 8px; }
 .heatmap-wrap { overflow-x: auto; padding-bottom: 4px; }
 #chartHeatmap { height: 172px; min-width: 560px; }
 
+/* ── coach's read (LLM tier) ───────────────────────────────────────────────*/
+.coach { font-family: var(--serif); font-size: 15.5px; line-height: 1.7; color: var(--ink); max-width: 68ch; }
+.coach p { margin: 0 0 13px; }
+.coach p:last-child { margin-bottom: 0; }
+.coach.loading { color: var(--ink-soft); font-style: italic; }
+.coach.note { font-family: var(--sans); font-size: 13px; color: var(--ink-soft); }
+.coach code { font-family: var(--mono); font-size: 12px; background: var(--paper); border: 1px solid var(--rule); padding: 1px 5px; }
+.coach .coach-note { font-family: var(--sans); font-size: 11px; color: var(--ink-soft); margin-top: 16px; line-height: 1.5; }
+
 /* ── discoveries feed ──────────────────────────────────────────────────────*/
 .discfeed { display: flex; flex-direction: column; gap: 14px; }
 .disc { display: flex; gap: 22px; align-items: center; border: 1px solid var(--rule); border-left: 3px solid var(--ink-soft); background: var(--surface); padding: 15px 18px; }

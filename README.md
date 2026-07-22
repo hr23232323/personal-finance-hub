@@ -98,12 +98,28 @@ credit columns). Amount convention: **positive = money in, negative = money out*
 
 ### Explore & discover
 The **Statement** tab visualizes a period — category donut, an income→categories
-**Sankey**, and a daily **spending calendar**. The **Discoveries** tab is the point
-of the app: a feed of patterns found in your history — *"Dining is up 71% versus your
-norm,"* recurring charges you forgot you're paying, unusual spikes, one-offs that
-distorted a period — each ranked by how unusual it is *for you*, and clickable to the
-exact transactions behind it. Every detector is plain, transparent math: **no LLM
-required**, nothing invented — the optional advisor only narrates what's computed.
+**Sankey**, and a daily **spending calendar**.
+
+The **Discoveries** tab is the point of the app, and it works in two tiers.
+
+**Tier 1 — deterministic (always on, no API key needed).** Lenses computed exactly
+from your data, ranked by how unusual each is *for you*, each clickable to the
+transactions behind it:
+
+- **Needs vs. discretionary** — the split, and how it's shifting over time
+- **Big moments** — trips and one-time purchases aggregated (*"7 big moments = $6,633,
+  8% of everything; excluding them you held around $5,426/mo"*)
+- **Eating out** — restaurants vs. takeout vs. coffee, as a share of discretionary
+- **Shopping** — frequency vs. order size (*"16 orders averaging $52"*)
+- **Weekly rhythm** — which days you actually spend
+- **Subscriptions** (the ones you can change) vs. **fixed commitments** (the ones you
+  can't), small purchases, category trends, and possible duplicate charges
+
+**Tier 2 — the coach (optional).** With an LLM key set, a short written read appears
+above the feed: it connects the Tier-1 findings and picks out what matters. **Every
+figure comes from Tier 1 — the model narrates the numbers, it never invents them.**
+Without a key, everything above still works.
+
 Charts use a vendored copy of ECharts (no CDN, fully offline).
 
 ### Ask the advisor
@@ -142,8 +158,10 @@ app/
     simplefin.py       token exchange + read-only sync
   queries.py           read-only queries (also the LLM's tools)
   analysis.py          detectors: recurring, anomalies, chart feeds
-  discover.py          Discoveries engine: ranked, evidence-linked insights
-  llm.py               provider-agnostic tool-calling advisor loop
+  classify.py          taxonomy: needs vs. discretionary, dining sub-types
+  discover.py          Tier 1 — deterministic Discoveries engine
+  coach.py             Tier 2 — LLM narration of Tier-1 facts (optional)
+  llm.py               provider-agnostic client (tool-calling + completion)
   api.py               FastAPI: dashboard + JSON API (binds 127.0.0.1)
   web/                 vanilla-JS dashboard (no CDN, fully offline)
   web/vendor/          ECharts, vendored locally for offline charts

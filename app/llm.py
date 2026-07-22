@@ -83,6 +83,23 @@ def _system_prompt() -> str:
     )
 
 
+def complete(system: str, user: str, max_tokens: int = 10000) -> str:
+    """One-shot completion (no tools). Used by the coach tier to narrate facts.
+
+    The budget is deliberately large: reasoning models (Gemini, o-series, ...)
+    spend most of it on hidden reasoning before writing a word, and a truncated
+    read is far worse than a few extra tokens.
+    """
+    if not config.llm_configured():
+        raise RuntimeError("No LLM key set.")
+    client = OpenAI(base_url=config.LLM_BASE_URL, api_key=config.LLM_API_KEY)
+    resp = client.chat.completions.create(
+        model=config.LLM_MODEL, max_tokens=max_tokens,
+        messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+    )
+    return (resp.choices[0].message.content or "").strip()
+
+
 def chat(message: str, history: list | None = None, max_rounds: int = 6) -> str:
     if not config.llm_configured():
         raise RuntimeError(
