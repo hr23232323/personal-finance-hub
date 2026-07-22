@@ -199,9 +199,17 @@ details > input, details > .composer { margin-top: 8px; }
 
 /* ── coach's read (LLM tier) ───────────────────────────────────────────────*/
 .coach { font-family: var(--serif); font-size: 15.5px; line-height: 1.7; color: var(--ink); max-width: 68ch; }
-.coach p { margin: 0 0 13px; }
-.coach p:last-child { margin-bottom: 0; }
 .coach.loading { color: var(--ink-soft); font-style: italic; }
+.coachcards { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; }
+.ci { border: 1px solid var(--rule); border-top: 2px solid var(--ink-soft); background: var(--surface); padding: 13px 16px 15px; }
+.ci-pattern { border-top-color: var(--gold); }
+.ci-opportunity { border-top-color: var(--green); }
+.ci-watch { border-top-color: var(--oxblood); }
+.ci-top { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-bottom: 7px; }
+.ci-kind { font-family: var(--mono); font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.11em; color: var(--ink-soft); }
+.ci-metric { font-family: var(--mono); font-size: 14px; font-variant-numeric: tabular-nums; color: var(--ink); white-space: nowrap; }
+.ci h4 { font-family: var(--serif); font-size: 15.5px; font-weight: 600; margin: 0 0 5px; line-height: 1.32; }
+.ci p { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); }
 .coach.note { font-family: var(--sans); font-size: 13px; color: var(--ink-soft); }
 .coach code { font-family: var(--mono); font-size: 12px; background: var(--paper); border: 1px solid var(--rule); padding: 1px 5px; }
 .coach .coach-note { font-family: var(--sans); font-size: 11px; color: var(--ink-soft); margin-top: 16px; line-height: 1.5; }

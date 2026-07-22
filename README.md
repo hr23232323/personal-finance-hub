@@ -115,10 +115,13 @@ transactions behind it:
 - **Subscriptions** (the ones you can change) vs. **fixed commitments** (the ones you
   can't), small purchases, category trends, and possible duplicate charges
 
-**Tier 2 — the coach (optional).** With an LLM key set, a short written read appears
-above the feed: it connects the Tier-1 findings and picks out what matters. **Every
-figure comes from Tier 1 — the model narrates the numbers, it never invents them.**
-Without a key, everything above still works.
+**Tier 2 — the coach (optional).** With an LLM key set, 3–5 short insight cards appear
+above the feed, returned as **structured output** (typed: observation / pattern /
+opportunity / watch, each with a headline, a metric, and a detail). They're asked to
+*add* something the findings don't already say — connecting two of them, or explaining
+what a number implies — rather than narrating. **Every figure comes from Tier 1; the
+model connects the numbers, it never invents them.** Without a key, everything above
+still works.
 
 Charts use a vendored copy of ECharts (no CDN, fully offline).
 

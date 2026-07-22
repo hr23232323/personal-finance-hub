@@ -1,30 +1,64 @@
 """Tier 2 — the LLM coach.
 
-Reads the *deterministic* facts produced by discover.py and writes a short,
-grounded read of them. The hard rule: the model narrates, ranks, and connects —
-it never produces a number. Every figure it states comes from the facts bundle,
-which was computed exactly from the local database.
+Reads the *deterministic* facts produced by discover.py and returns 3-5 typed
+insights that add something the raw findings don't already say: connecting two
+findings, explaining what a number implies, or singling out what deserves
+attention. The hard rule: the model interprets, ranks, and connects — it never
+produces a number. Every figure it cites comes from the facts bundle, which was
+computed exactly from the local database.
 
 Optional by design: with no LLM key the app is fully useful without this, and
-nothing leaves the machine. When it *is* enabled, only the computed facts
-(aggregates and finding summaries) are sent — not the raw transaction ledger.
+nothing leaves the machine. When enabled, only the computed facts (aggregates
+and finding summaries) are sent — never the raw transaction ledger.
 """
 import json
 
 from . import config, db, discover, llm, queries
 
 SYSTEM = (
-    "You are a calm, sharp personal finance coach reviewing someone's spending.\n"
-    "You are given FACTS computed exactly from their transaction data. Every number you state "
-    "must come from these facts verbatim — never invent, estimate, or recompute a figure.\n\n"
-    "Write a short read of their finances:\n"
-    "- 2 to 4 short paragraphs of plain prose. No headings, no bullet lists, no markdown.\n"
-    "- Lead with the single most important thing.\n"
-    "- Connect facts to each other where it's genuinely insightful, rather than restating them.\n"
-    "- Be non-judgmental. A one-off trip or a big purchase is not a problem to be fixed.\n"
-    "- At most ONE gentle suggestion, and only if it's clearly worth making. None is fine.\n"
-    "- No greeting, no sign-off, no flattery. Just the read."
+    "You are a sharp, calm personal finance analyst.\n"
+    "You are given FACTS computed exactly from someone's transaction data, including the "
+    "deterministic findings already displayed to them.\n\n"
+    "Return 4 or 5 insights that ADD something those findings don't already state (3 only if the "
+    "data is genuinely thin). Good insights:\n"
+    "- connect two or more findings into a single point\n"
+    "- explain what a number actually implies for this person\n"
+    "- single out what genuinely deserves attention, or reassure that something looks fine\n"
+    "Never simply restate a finding in different words.\n\n"
+    "Rules:\n"
+    "- Every figure you cite must appear verbatim in the facts. Never invent or recompute a number.\n"
+    "- headline: under 60 characters, concrete and specific. No fluff, no questions.\n"
+    "- detail: one or two plain-language sentences.\n"
+    "- metric: the single most relevant figure, copied exactly as written in the facts, for example "
+    "$756/mo. Use an empty string if no single figure fits.\n"
+    "- Never wrap figures in quotation marks. Write $963, not \"$963\".\n"
+    "- kind: 'pattern' for recurring behaviour, 'opportunity' for something worth changing, "
+    "'watch' for something to keep an eye on, 'observation' for neutral context.\n"
+    "- Be non-judgmental. A one-off trip or a big purchase is not a problem to be fixed."
 )
+
+SCHEMA = {
+    "type": "object",
+    "properties": {
+        "insights": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "headline": {"type": "string"},
+                    "detail": {"type": "string"},
+                    "metric": {"type": "string"},
+                    "kind": {"type": "string",
+                             "enum": ["observation", "pattern", "opportunity", "watch"]},
+                },
+                "required": ["headline", "detail", "metric", "kind"],
+                "additionalProperties": False,
+            },
+        }
+    },
+    "required": ["insights"],
+    "additionalProperties": False,
+}
 
 _cache = {}
 
@@ -48,21 +82,31 @@ def facts():
             "net": f"${s['net']:,.0f}",
             "transactions": s["count"],
         },
-        "findings": [{"headline": d["title"], "detail": d["summary"]}
-                     for d in discover.discoveries()],
+        "findings_already_shown": [{"headline": d["title"], "detail": d["summary"]}
+                                   for d in discover.discoveries()],
     }
+
+
+def _clean(insight):
+    """Models like to wrap quoted figures in quotation marks — strip them."""
+    out = {k: (v.replace('"', "").strip() if isinstance(v, str) else v)
+           for k, v in insight.items()}
+    if out.get("kind") not in ("observation", "pattern", "opportunity", "watch"):
+        out["kind"] = "observation"
+    return out
 
 
 def read(force: bool = False):
     if not config.llm_configured():
-        return {"available": False, "read": None, "model": None}
+        return {"available": False, "insights": [], "model": None}
     fp = _fingerprint()
     if not force and fp in _cache:
-        return {"available": True, "read": _cache[fp], "model": config.LLM_MODEL}
+        return {"available": True, "insights": _cache[fp], "model": config.LLM_MODEL}
     try:
-        text = llm.complete(SYSTEM, json.dumps(facts(), indent=1))
+        data = llm.complete_json(SYSTEM, json.dumps(facts(), indent=1), SCHEMA)
+        insights = [_clean(i) for i in data.get("insights", []) if i.get("headline")][:5]
     except Exception as e:
-        return {"available": True, "read": None, "model": config.LLM_MODEL, "error": str(e)}
+        return {"available": True, "insights": [], "model": config.LLM_MODEL, "error": str(e)}
     _cache.clear()
-    _cache[fp] = text
-    return {"available": True, "read": text, "model": config.LLM_MODEL}
+    _cache[fp] = insights
+    return {"available": True, "insights": insights, "model": config.LLM_MODEL}

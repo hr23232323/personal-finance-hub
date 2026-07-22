@@ -83,6 +83,37 @@ def _system_prompt() -> str:
     )
 
 
+def _strip_fences(text: str) -> str:
+    t = text.strip()
+    if t.startswith("```"):
+        t = t.split("\n", 1)[1] if "\n" in t else t
+        t = t.rsplit("```", 1)[0]
+    return t.strip()
+
+
+def complete_json(system: str, user: str, schema: dict, max_tokens: int = 10000) -> dict:
+    """Structured output: ask for a JSON schema and return the parsed object.
+
+    Uses the OpenAI-compatible `response_format` when the provider supports it,
+    and falls back to plain JSON parsing when it doesn't.
+    """
+    if not config.llm_configured():
+        raise RuntimeError("No LLM key set.")
+    client = OpenAI(base_url=config.LLM_BASE_URL, api_key=config.LLM_API_KEY)
+    kwargs = dict(
+        model=config.LLM_MODEL, max_tokens=max_tokens,
+        messages=[{"role": "system", "content": system}, {"role": "user", "content": user}],
+    )
+    try:
+        resp = client.chat.completions.create(**kwargs, response_format={
+            "type": "json_schema",
+            "json_schema": {"name": "insights", "strict": True, "schema": schema},
+        })
+    except Exception:
+        resp = client.chat.completions.create(**kwargs)  # provider lacks structured output
+    return json.loads(_strip_fences(resp.choices[0].message.content or "{}"))
+
+
 def complete(system: str, user: str, max_tokens: int = 10000) -> str:
     """One-shot completion (no tools). Used by the coach tier to narrate facts.
 

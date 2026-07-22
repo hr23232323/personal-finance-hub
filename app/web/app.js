@@ -194,15 +194,23 @@ async function loadCoach() {
         + "these findings. Everything below works without it.";
       return;
     }
-    if (!c.read) {
+    if (!c.insights || !c.insights.length) {
       el.className = "coach note";
       el.textContent = "Couldn't reach the model" + (c.error ? `: ${c.error}` : ".");
       return;
     }
-    el.className = "coach";
-    el.innerHTML = c.read.split(/\n\s*\n/).map((p) => `<p>${esc(p.trim())}</p>`).join("")
-      + `<p class="coach-note">Written by ${esc(c.model)} from the computed findings below — it
-         narrates the numbers, it never invents them.</p>`;
+    el.className = "coachwrap";
+    el.innerHTML = `<div class="coachcards">${c.insights.map((i) => `
+      <article class="ci ci-${esc(i.kind)}">
+        <div class="ci-top">
+          <span class="ci-kind">${esc(i.kind)}</span>
+          ${i.metric ? `<span class="ci-metric">${esc(i.metric)}</span>` : ""}
+        </div>
+        <h4>${esc(i.headline)}</h4>
+        <p>${esc(i.detail)}</p>
+      </article>`).join("")}</div>
+      <p class="coach-note">Interpreted by ${esc(c.model)} from the computed findings below —
+         it connects the numbers, it never invents them.</p>`;
   } catch (e) {
     el.className = "coach note";
     el.textContent = e.message;
